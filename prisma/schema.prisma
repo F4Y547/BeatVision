@@ -50,6 +50,7 @@ model Project {
   audioAssetId    String?
   activeVersionId String?
   thumbnailUrl    String?
+  sceneConfig     Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

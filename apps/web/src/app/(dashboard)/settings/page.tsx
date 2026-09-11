@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 export default function SettingsPage() {
-  const [name, setName] = useState("Demo User");
-  const [email, setEmail] = useState("demo@beatvision.app");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,6 +16,90 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState("dark");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.user) {
+          setName(data.user.name || "");
+          setEmail(data.user.email || "");
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        setSaveMessage("Profile updated successfully!");
+      } else {
+        const data = await res.json();
+        setSaveMessage(null);
+        alert(data.error || "Failed to update profile");
+      }
+    } catch {
+      alert("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setPasswordMessage(null);
+    if (!currentPassword || !newPassword) {
+      setPasswordMessage("Please fill in all password fields.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage("Passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordMessage("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setPasswordMessage(data.error || "Failed to update password");
+      }
+    } catch {
+      setPasswordMessage("Failed to update password");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 max-w-3xl mx-auto flex items-center justify-center py-20">
+        <svg className="w-8 h-8 text-beatvision-400 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
@@ -40,13 +124,15 @@ export default function SettingsPage() {
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            disabled
           />
           {saveMessage && (
             <p className="text-sm text-green-400">{saveMessage}</p>
           )}
           <div className="flex justify-end">
-            <Button onClick={() => setSaveMessage("Profile updated successfully!")}>Save Changes</Button>
+            <Button onClick={handleSaveProfile} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -83,27 +169,7 @@ export default function SettingsPage() {
             </p>
           )}
           <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                setPasswordMessage(null);
-                if (!currentPassword || !newPassword) {
-                  setPasswordMessage("Please fill in all password fields.");
-                  return;
-                }
-                if (newPassword !== confirmPassword) {
-                  setPasswordMessage("Passwords do not match.");
-                  return;
-                }
-                if (newPassword.length < 8) {
-                  setPasswordMessage("Password must be at least 8 characters.");
-                  return;
-                }
-                setPasswordMessage("Password updated successfully!");
-                setCurrentPassword("");
-                setNewPassword("");
-                setConfirmPassword("");
-              }}
-            >
+            <Button onClick={handleUpdatePassword}>
               Update Password
             </Button>
           </div>
@@ -117,7 +183,6 @@ export default function SettingsPage() {
           <CardDescription>Customize your editor experience</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Default Export Quality */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-300">
               Default Export Quality
@@ -134,7 +199,6 @@ export default function SettingsPage() {
             </select>
           </div>
 
-          {/* Auto Save */}
           <div className="flex items-center justify-between py-2">
             <div>
               <p className="text-sm font-medium text-zinc-300">Auto Save</p>
@@ -154,7 +218,6 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* Theme */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-300">Theme</label>
             <div className="flex gap-2">

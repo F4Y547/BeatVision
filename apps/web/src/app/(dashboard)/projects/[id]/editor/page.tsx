@@ -146,6 +146,8 @@ export default function EditorPage() {
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [projectName, setProjectName] = useState("Loading...");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -200,12 +202,51 @@ export default function EditorPage() {
               if (meta.url) setAudioUrl(meta.url);
             } catch {}
           }
+          // Load saved scene config
+          if (data.project.sceneConfig) {
+            try {
+              const config = typeof data.project.sceneConfig === "string" 
+                ? JSON.parse(data.project.sceneConfig) 
+                : data.project.sceneConfig;
+              if (config.mode) useEditorStore.getState().setMode(config.mode);
+              if (config.layers) useEditorStore.getState().setLayers(config.layers);
+              if (config.audioMappings) useEditorStore.getState().setAudioMappings(config.audioMappings);
+            } catch {}
+          }
         }
       })
       .catch(() => {
         setProjectName("Untitled Project");
       });
   }, [projectId]);
+
+  // Auto-save scene config to DB (debounced 2s)
+  const scene = useEditorStore((s) => s.scene);
+  const layers = useEditorStore((s) => s.layers);
+  const audioMappings = useEditorStore((s) => s.audioMappings);
+
+  useEffect(() => {
+    if (!projectId || projectName === "Loading...") return;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+    saveTimeoutRef.current = setTimeout(() => {
+      setSaveStatus("saving");
+      fetch(`/api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sceneConfig: JSON.stringify({ mode: scene.mode, layers, audioMappings }),
+        }),
+      })
+        .then(() => setSaveStatus("saved"))
+        .catch(() => setSaveStatus("idle"));
+    }, 2000);
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [projectId, projectName, scene.mode, layers, audioMappings]);
 
   const handlePlayPause = async () => {
     if (!audioRef.current) {
@@ -344,6 +385,10 @@ export default function EditorPage() {
             ))}
           </select>
           <span className="hidden md:inline text-sm text-zinc-400 truncate max-w-[200px]">{projectName}</span>
+          <span className="hidden md:inline text-xs text-zinc-500">
+            {saveStatus === "saving" && "Saving..."}
+            {saveStatus === "saved" && "Saved"}
+          </span>
           <Button
             variant="ghost"
             size="sm"
