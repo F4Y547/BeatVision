@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@beatvision/audio-engine": ["./packages/audio-engine/src"],
+      "@beatvision/visual-engine": ["./packages/visual-engine/src"],
+      "@beatvision/renderer": ["./packages/renderer/src"],
+      "@beatvision/validation": ["./packages/validation/src"],
+      "@beatvision/ui": ["./packages/ui/src"],
+      "@beatvision/storage": ["./packages/storage/src"],
+      "@beatvision/config": ["./packages/config/src"]
+    }
+  },
+  "exclude": ["node_modules"]
+}

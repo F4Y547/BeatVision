@@ -1,0 +1,1448 @@
+BEATVISION
+Advanced Real-Time Music Visualizer
+Product Requirements Document (PRD)
+
+Document Version: 1.0
+Date: 2026-09-10
+Product Type: Browser-based creative software / SaaS
+Primary Audience: Musicians, producers, DJs, content creators, labels, agencies, streamers, and social-media creators
+
+======================================================================
+1. EXECUTIVE SUMMARY
+======================================================================
+
+BeatVision is a professional, browser-based music visualization platform that transforms any audio track and any uploaded image, logo, album artwork, or brand asset into a synchronized, real-time visual experience.
+
+The product combines audio analysis, beat detection, image-aware rendering, WebGL effects, customizable presets, timeline controls, and high-quality video export. Unlike basic equalizers that display generic bars, BeatVision makes the uploaded artwork itself the visual identity of the experience. Bass, drums, melody, vocals, energy, and detected rhythm can control the scale, glow, particles, camera, spectrum, color, and motion of the visual composition.
+
+The product must be useful as:
+1. A fast browser tool for creating a visualizer in minutes.
+2. A professional editor for advanced customization.
+3. A SaaS workspace for saving projects, brand kits, and reusable presets.
+4. A rendering system for producing videos for YouTube, Shorts, Reels, TikTok, streaming, and music promotion.
+
+The core product promise is:
+
+"Upload your music and artwork. BeatVision makes them move together."
+
+======================================================================
+2. PRODUCT VISION
+======================================================================
+
+Create the most accessible and visually powerful audio-reactive artwork platform for independent artists and creators.
+
+BeatVision should make professional-looking music visualizers possible without requiring knowledge of 3D software, motion graphics, After Effects, Blender, or video editing.
+
+The product should feel:
+- Premium
+- Fast
+- Creative
+- Precise
+- Responsive
+- Easy for beginners
+- Deep enough for professionals
+- Reliable for long exports
+- Suitable for music branding
+
+======================================================================
+3. PROBLEM STATEMENT
+======================================================================
+
+Musicians and creators often need visual content for tracks but face several problems:
+- Professional motion graphics software is expensive or difficult.
+- Generic music visualizers do not preserve brand identity.
+- Many tools offer limited synchronization controls.
+- Uploaded logos are stretched, blurred, or distorted.
+- Beat detection is often inaccurate or impossible to correct.
+- Browser visualizers frequently lack export capabilities.
+- Social platforms require multiple aspect ratios.
+- Long videos can fail during browser-only rendering.
+- Users cannot easily reuse visual styles across multiple tracks.
+- Advanced effects are difficult to control without technical knowledge.
+
+BeatVision solves these problems through a visual editor built around audio-reactive composition, artwork preservation, customizable synchronization, and reliable rendering.
+
+======================================================================
+4. GOALS
+======================================================================
+
+4.1 Primary Goals
+
+- Accept common audio formats.
+- Accept images, logos, transparent PNGs, SVGs, and album artwork.
+- Analyze audio in real time.
+- Detect beats and estimate BPM.
+- Synchronize visual parameters with music.
+- Preserve artwork aspect ratio and visual identity.
+- Provide professional visualizer modes.
+- Support live preview with low latency.
+- Provide editable effect controls.
+- Support landscape, portrait, and square compositions.
+- Export high-quality videos.
+- Save and reopen projects.
+- Provide reusable presets and brand kits.
+
+4.2 Secondary Goals
+
+- Provide AI-assisted preset generation.
+- Support lyric overlays.
+- Support multiple visual layers.
+- Support cloud rendering.
+- Support collaboration and team workspaces.
+- Provide a template marketplace.
+- Provide subscription-based storage and export limits.
+
+4.3 Non-Goals for Initial MVP
+
+- Full digital audio workstation functionality.
+- Audio mixing, mastering, or multitrack editing.
+- Professional video editing with hundreds of clips.
+- Live streaming to every platform directly.
+- Automatic copyright clearance.
+- Guaranteed perfect beat detection for every genre.
+- Native mobile applications in the first release.
+- Full 3D modeling and mesh editing.
+
+======================================================================
+5. TARGET USERS
+======================================================================
+
+5.1 Independent Musicians
+Need fast visual content for singles, albums, releases, and promotional campaigns.
+
+5.2 Beat Producers
+Need visualizers for instrumental beats, loops, and beat-store previews.
+
+5.3 DJs and Performers
+Need reactive visuals for live performances and screens.
+
+5.4 YouTube Creators
+Need long-form music visualizers, mixes, livestream backgrounds, and Shorts.
+
+5.5 Record Labels
+Need repeatable branding, project organization, and batch production.
+
+5.6 Agencies
+Need client projects, brand kits, reusable templates, and team permissions.
+
+5.7 Social Media Creators
+Need fast vertical exports for Reels, TikTok, and Shorts.
+
+======================================================================
+6. USER PERSONAS
+======================================================================
+
+Persona A: Beginner Artist
+- Uploads one song and one logo.
+- Wants a professional result quickly.
+- Uses presets.
+- Needs simple controls.
+- Exports a 1080p video.
+
+Persona B: Advanced Producer
+- Wants detailed frequency mapping.
+- Adjusts beat sensitivity and timing.
+- Uses custom layers and shaders.
+- Needs precise timeline control.
+
+Persona C: Label Manager
+- Manages multiple artists.
+- Uses brand kits.
+- Reuses templates.
+- Needs cloud projects and team access.
+
+Persona D: Content Agency
+- Creates many client visualizers.
+- Needs export queues.
+- Requires predictable rendering and project versioning.
+
+======================================================================
+7. CORE USER JOURNEYS
+======================================================================
+
+7.1 Quick Visualizer Journey
+
+1. User opens BeatVision.
+2. User uploads an audio file.
+3. User uploads an image or logo.
+4. System analyzes the audio.
+5. System displays BPM, duration, waveform, and energy.
+6. User chooses a preset.
+7. User previews the result.
+8. User adjusts intensity and colors.
+9. User selects output format.
+10. User exports the video.
+11. System displays rendering progress.
+12. User downloads or saves the result.
+
+7.2 Advanced Editing Journey
+
+1. Create a project.
+2. Import audio and artwork.
+3. Review automatic beat markers.
+4. Correct BPM or beat offset.
+5. Add background, artwork, spectrum, particle, and text layers.
+6. Assign audio bands to visual properties.
+7. Adjust effect curves.
+8. Add manual events.
+9. Preview at different timeline positions.
+10. Save a version.
+11. Render a draft.
+12. Render the final output.
+
+7.3 Brand Kit Journey
+
+1. Create a brand kit.
+2. Upload logos and alternate marks.
+3. Add brand colors.
+4. Save typography and layout rules.
+5. Create reusable presets.
+6. Apply the brand kit to new projects.
+7. Export multiple tracks consistently.
+
+======================================================================
+8. FUNCTIONAL REQUIREMENTS
+======================================================================
+
+8.1 Authentication and Accounts
+
+The system shall support:
+- Email/password registration.
+- Email verification.
+- Login and logout.
+- Password reset.
+- OAuth providers where available.
+- Session management.
+- Account deletion.
+- Data export.
+- Optional two-factor authentication.
+- Workspace membership.
+
+Acceptance Criteria:
+- A registered user can securely log in.
+- Unauthorized users cannot access private projects.
+- Sessions expire according to security policy.
+- Account deletion removes or anonymizes personal data according to policy.
+
+8.2 Project Management
+
+The system shall support:
+- Create project.
+- Rename project.
+- Duplicate project.
+- Archive project.
+- Delete project.
+- Restore project where supported.
+- Add project description.
+- Add tags.
+- Save project versions.
+- View last edited timestamp.
+- Autosave changes.
+- Show project status: draft, rendering, completed, failed.
+
+Acceptance Criteria:
+- Project changes are not lost during normal use.
+- Autosave does not interrupt playback.
+- Duplicate projects have independent editable settings.
+- Deleted projects follow retention rules.
+
+8.3 Audio Import
+
+Supported formats should include:
+- MP3
+- WAV
+- OGG
+- M4A where browser decoding supports it
+- FLAC where supported
+- WebM audio where supported
+
+Audio requirements:
+- Display file name.
+- Display duration.
+- Display sample rate where available.
+- Display channel count where available.
+- Display waveform.
+- Display estimated BPM.
+- Display loudness and energy.
+- Detect silence and clipping warnings.
+- Reject unsupported or corrupted files with a clear message.
+- Enforce plan-based file size and duration limits.
+
+Acceptance Criteria:
+- Valid supported audio loads successfully.
+- The user can play, pause, seek, and restart audio.
+- Audio analysis begins without blocking the interface.
+- Errors are actionable and understandable.
+
+8.4 Artwork and Logo Import
+
+Supported assets:
+- PNG
+- JPG/JPEG
+- WebP
+- SVG where safely parsed
+- GIF first frame only in MVP
+- Transparent images
+
+Artwork requirements:
+- Preserve original aspect ratio.
+- Preserve transparency.
+- Avoid stretching.
+- Display image dimensions.
+- Display file size.
+- Detect dominant colors.
+- Generate a thumbnail.
+- Allow replacement without losing effect settings.
+- Support fit, contain, cover, and custom scale modes.
+- Support position and rotation.
+- Support crop preview before applying.
+- Keep the original file separate from generated derivatives.
+
+Acceptance Criteria:
+- A logo remains recognizable.
+- Transparent pixels remain transparent.
+- The image is not stretched when rendered.
+- The system handles very wide and very tall artwork.
+- Invalid files produce a clear error.
+
+8.5 Audio Analysis Engine
+
+The analysis engine shall calculate:
+- FFT spectrum.
+- Bass energy.
+- Low-mid energy.
+- Mid energy.
+- High-mid energy.
+- Treble energy.
+- RMS volume.
+- Peak volume.
+- Smoothed volume.
+- Spectral centroid.
+- Spectral flux.
+- Beat confidence.
+- Estimated BPM.
+- Onset events.
+- Silence sections.
+- Dynamic range estimate.
+
+The engine shall provide:
+- Configurable FFT size.
+- Configurable smoothing.
+- Frequency-band mapping.
+- Attack and release controls.
+- Noise floor adjustment.
+- Sensitivity control.
+- Beat detection mode.
+- Manual BPM override.
+- Beat offset correction.
+- Analysis caching.
+
+Acceptance Criteria:
+- Audio features update in real time.
+- Visual parameters do not jump excessively due to noise.
+- Users can increase or decrease sensitivity.
+- Users can correct an inaccurate BPM.
+- Analysis does not freeze the main interface.
+
+8.6 Beat Detection
+
+The system shall:
+- Estimate BPM.
+- Detect beat/onset events.
+- Display beat markers on the timeline.
+- Display confidence where possible.
+- Support half-time and double-time correction.
+- Allow manual beat offset.
+- Allow manual marker insertion.
+- Allow marker deletion and movement.
+- Support downbeat adjustment.
+- Provide genre-neutral fallback detection.
+
+Acceptance Criteria:
+- The user can inspect detected markers.
+- A beat marker can be moved.
+- Visual events can be aligned to corrected markers.
+- The system never claims guaranteed perfection.
+- Playback remains synchronized after corrections.
+
+8.7 Real-Time Preview
+
+The preview shall support:
+- Play/pause.
+- Seek.
+- Restart.
+- Loop selected region.
+- Fullscreen.
+- Mute/unmute.
+- Volume control.
+- Preview quality selection.
+- Frame-rate display.
+- Performance monitor.
+- Safe-area overlay.
+- Grid and center guides.
+- Aspect-ratio preview.
+
+The renderer shall target:
+- 60 FPS on capable desktop devices.
+- Graceful degradation on weaker devices.
+- Stable playback without memory leaks.
+- Responsive controls during playback.
+
+8.8 Visualizer Modes
+
+MVP visualizer modes:
+1. Logo Reactor
+2. Circular Spectrum
+3. Linear Spectrum
+4. Waveform
+5. Particle Field
+6. Cinematic Artwork
+7. Minimal Pulse
+8. Radial Equalizer
+9. Glitch Impact
+10. Ambient Gradient
+
+Each mode shall expose:
+- Enable/disable.
+- Intensity.
+- Opacity.
+- Blend mode where supported.
+- Audio source mapping.
+- Color controls.
+- Position controls.
+- Scale controls.
+- Smoothing controls.
+- Preset save/load.
+
+8.9 Logo Reactor
+
+Features:
+- Bass-driven scale.
+- Beat pulse.
+- Glow.
+- Outline.
+- Shadow.
+- Rotation.
+- Position.
+- Particle emission.
+- Ring expansion.
+- Distortion amount.
+- Motion smoothing.
+- Impact flash.
+
+The system must use the actual artwork texture and optional alpha mask. It must not substitute a generic shape for the uploaded logo unless the user explicitly selects a generated shape mode.
+
+8.10 Spectrum Visualizer
+
+Features:
+- Circular bars.
+- Radial lines.
+- Mirror spectrum.
+- Waveform ring.
+- Linear bars.
+- Frequency range selection.
+- Bar count.
+- Bar width.
+- Gap.
+- Radius.
+- Rotation.
+- Smoothing.
+- Bass emphasis.
+- Color gradient.
+- Artwork-aware color palette.
+
+8.11 Particle Engine
+
+Features:
+- Configurable particle count.
+- GPU rendering where possible.
+- Particle size.
+- Speed.
+- Direction.
+- Gravity.
+- Turbulence.
+- Noise movement.
+- Attraction to artwork.
+- Beat burst.
+- Bass explosion.
+- Lifetime.
+- Opacity.
+- Color source.
+- Collision mode where practical.
+
+Performance requirements:
+- Particle count adapts to device capability.
+- The system avoids unbounded particle creation.
+- Particle buffers are reused.
+- The renderer releases resources when a project closes.
+
+8.12 Cinematic Camera
+
+Features:
+- Slow zoom.
+- Pan.
+- Tilt.
+- Parallax.
+- Depth layers.
+- Camera shake.
+- Beat impact.
+- Motion curve.
+- Start and end framing.
+- Automatic safe-area preservation.
+
+8.13 Layer System
+
+Layer types:
+- Background color.
+- Background image.
+- Artwork.
+- Logo.
+- Spectrum.
+- Waveform.
+- Particles.
+- Glow.
+- Light rays.
+- Fog.
+- Text.
+- Lyrics.
+- Vignette.
+- Grain.
+- Glitch.
+- Overlay.
+
+Each layer shall support:
+- Visibility.
+- Locking.
+- Ordering.
+- Opacity.
+- Position.
+- Scale.
+- Rotation.
+- Blend mode.
+- Audio mapping.
+- Keyframes where supported.
+- Reset controls.
+
+8.14 Audio-to-Visual Mapping
+
+Users shall be able to map:
+- Bass to scale.
+- Bass to glow.
+- Bass to camera shake.
+- Mids to rotation.
+- Treble to particle speed.
+- Volume to opacity.
+- Beat to flash.
+- Spectral centroid to color.
+- Energy to zoom.
+- Onset strength to burst size.
+
+Mapping controls:
+- Source selector.
+- Target property.
+- Minimum value.
+- Maximum value.
+- Curve.
+- Smoothing.
+- Attack.
+- Release.
+- Inversion.
+- Clamp.
+- Threshold.
+- Randomness.
+
+8.15 Presets
+
+The system shall provide built-in presets:
+- Dark Trap.
+- Neon Pulse.
+- Cyberpunk.
+- Cinematic.
+- Minimal Logo.
+- Bass Reactor.
+- Space Tunnel.
+- Liquid Spectrum.
+- Glitch Impact.
+- Ambient Dream.
+- Retro VHS.
+- Monochrome Studio.
+
+Users shall be able to:
+- Save preset.
+- Rename preset.
+- Duplicate preset.
+- Delete personal preset.
+- Export preset configuration.
+- Import preset configuration.
+- Mark favorite.
+- Apply preset to a project.
+
+8.16 Timeline
+
+Timeline requirements:
+- Waveform display.
+- Beat markers.
+- Playhead.
+- Time ruler.
+- Zoom.
+- Scrubbing.
+- Loop region.
+- Marker editing.
+- Event lanes.
+- Keyframe lanes in advanced mode.
+- Snap to beat.
+- Snap to time.
+- Undo/redo.
+
+8.17 Text and Lyrics
+
+MVP:
+- Add text.
+- Change font family from approved list.
+- Change size.
+- Weight.
+- Alignment.
+- Color.
+- Opacity.
+- Position.
+- Shadow.
+- Outline.
+- Basic animation.
+
+Future:
+- Import timestamped lyrics.
+- Automatic lyric timing.
+- Word-level highlighting.
+- Karaoke mode.
+- Multiple language support.
+
+8.18 Export
+
+Export formats:
+- MP4.
+- WebM.
+- Image sequence for advanced users.
+- PNG still frame.
+- Optional transparent video where technically supported.
+
+Aspect ratios:
+- 16:9 landscape.
+- 9:16 portrait.
+- 1:1 square.
+- 4:5 social portrait.
+- Custom dimensions.
+
+Resolution presets:
+- 720p.
+- 1080p.
+- 1440p.
+- 4K where plan and infrastructure support it.
+
+Frame rates:
+- 24 FPS.
+- 30 FPS.
+- 60 FPS.
+
+Export settings:
+- Bitrate.
+- Quality.
+- Codec.
+- Audio bitrate.
+- Start/end range.
+- Include or exclude audio.
+- Watermark based on plan.
+- File naming.
+- Metadata where supported.
+
+Acceptance Criteria:
+- Exported audio remains synchronized with visuals.
+- Output dimensions match the selected format.
+- The final file can be played in common media players.
+- Export progress is visible.
+- Failed jobs provide a reason and retry option.
+- The user can cancel queued or active jobs where supported.
+
+8.19 Rendering Architecture
+
+The system should support two rendering paths:
+
+A. Browser Preview Renderer
+- Web Audio API.
+- WebGL/Three.js.
+- Real-time interactive playback.
+- Reduced preview resolution where needed.
+
+B. Export Renderer
+- Browser export for short, low-resolution jobs.
+- Server-side rendering for long, high-resolution, or complex jobs.
+- Deterministic timeline playback.
+- Frame-by-frame rendering.
+- Audio muxing.
+- Job queue.
+- Retry and cleanup.
+
+The export renderer must not depend on the user's tab remaining open for server-side jobs.
+
+8.20 Notifications
+
+Notify users when:
+- Upload completes.
+- Analysis completes.
+- Export starts.
+- Export completes.
+- Export fails.
+- Storage quota is near limit.
+- Subscription limits are reached.
+
+======================================================================
+9. NON-FUNCTIONAL REQUIREMENTS
+======================================================================
+
+9.1 Performance
+
+- Initial editor shell should load quickly on a modern desktop connection.
+- Audio playback controls should respond immediately.
+- Preview should target 60 FPS on capable devices.
+- UI interactions should not block during analysis.
+- Large assets should be processed asynchronously.
+- Memory usage must be monitored.
+- Renderer must clean up WebGL resources.
+- Long sessions must not progressively degrade.
+
+9.2 Reliability
+
+- Autosave project state.
+- Recover from temporary rendering errors.
+- Preserve unfinished projects.
+- Avoid losing uploaded assets.
+- Retry transient server failures.
+- Provide clear error states.
+- Log rendering failures with correlation IDs.
+
+9.3 Security
+
+- Validate uploaded file type and size.
+- Do not trust file extensions alone.
+- Sanitize SVG content.
+- Isolate rendering jobs.
+- Scan uploads where infrastructure supports it.
+- Restrict access to private project assets.
+- Use signed URLs for private downloads.
+- Apply rate limits.
+- Protect account and billing endpoints.
+- Avoid executing user-provided shader code in the main application context.
+
+9.4 Accessibility
+
+- Keyboard-accessible controls.
+- Visible focus states.
+- Accessible labels.
+- Sufficient contrast.
+- Reduced-motion preference.
+- Non-color-only status indicators.
+- Screen-reader-friendly forms.
+- Error messages with recovery instructions.
+
+9.5 Compatibility
+
+Primary:
+- Latest Chrome/Chromium desktop.
+- Latest Edge.
+- Latest Firefox.
+- Latest Safari desktop where supported.
+
+The application must detect unsupported WebGL or audio features and provide a fallback message.
+
+======================================================================
+10. TECHNICAL ARCHITECTURE
+======================================================================
+
+10.1 Recommended Stack
+
+Frontend:
+- Next.js.
+- React.
+- TypeScript.
+- Tailwind CSS or a custom design system.
+- Zustand or equivalent state manager.
+
+Rendering:
+- Three.js.
+- WebGL2 where available.
+- GLSL shaders.
+- Web Audio API.
+- OffscreenCanvas where supported.
+- Web Workers for analysis and processing.
+
+Backend:
+- Node.js.
+- Next.js route handlers or a dedicated API service.
+- PostgreSQL.
+- Prisma ORM.
+- Redis for queues and caching.
+- S3-compatible object storage.
+- FFmpeg for server-side encoding.
+- Worker processes for rendering.
+
+Infrastructure:
+- Docker.
+- Object storage.
+- CDN.
+- Queue workers.
+- Monitoring.
+- Error tracking.
+- Structured logs.
+
+10.2 Suggested Monorepo
+
+beatvision/
+  apps/
+    web/
+    worker/
+    admin/
+  packages/
+    audio-engine/
+    visual-engine/
+    renderer/
+    export-engine/
+    validation/
+    ui/
+    storage/
+    config/
+  prisma/
+  docs/
+  tests/
+
+10.3 Frontend Modules
+
+- Authentication.
+- Dashboard.
+- Project editor.
+- Audio uploader.
+- Artwork uploader.
+- Audio analysis worker.
+- Timeline.
+- Layer panel.
+- Inspector panel.
+- Preset browser.
+- Export modal.
+- Render queue.
+- Brand kit manager.
+- Settings.
+
+10.4 Audio Engine Modules
+
+- Audio loader.
+- Decoder.
+- Analyser.
+- FFT processor.
+- Frequency-band processor.
+- Beat detector.
+- BPM estimator.
+- Smoothing processor.
+- Feature cache.
+- Timeline synchronizer.
+- Manual marker manager.
+
+10.5 Visual Engine Modules
+
+- Scene manager.
+- Camera manager.
+- Texture manager.
+- Layer compositor.
+- Logo renderer.
+- Spectrum renderer.
+- Particle renderer.
+- Post-processing pipeline.
+- Color palette manager.
+- Audio mapping engine.
+- Keyframe engine.
+- Performance monitor.
+
+======================================================================
+11. DATA MODEL
+======================================================================
+
+User:
+- id
+- email
+- name
+- avatarUrl
+- planId
+- createdAt
+- updatedAt
+
+Workspace:
+- id
+- name
+- ownerId
+- createdAt
+- updatedAt
+
+WorkspaceMember:
+- id
+- workspaceId
+- userId
+- role
+- createdAt
+
+Project:
+- id
+- workspaceId
+- name
+- description
+- status
+- duration
+- width
+- height
+- fps
+- audioAssetId
+- activeVersionId
+- createdAt
+- updatedAt
+
+ProjectVersion:
+- id
+- projectId
+- versionNumber
+- sceneConfig
+- audioConfig
+- beatMap
+- exportConfig
+- createdBy
+- createdAt
+
+Asset:
+- id
+- workspaceId
+- type
+- originalName
+- mimeType
+- sizeBytes
+- storageKey
+- checksum
+- width
+- height
+- duration
+- metadata
+- createdAt
+
+Preset:
+- id
+- workspaceId nullable
+- name
+- description
+- config
+- isPublic
+- createdBy
+- createdAt
+- updatedAt
+
+BrandKit:
+- id
+- workspaceId
+- name
+- logos
+- colors
+- typography
+- defaultLayout
+- createdAt
+- updatedAt
+
+RenderJob:
+- id
+- projectId
+- projectVersionId
+- status
+- progress
+- outputFormat
+- width
+- height
+- fps
+- storageKey
+- errorCode
+- errorMessage
+- startedAt
+- completedAt
+- createdAt
+
+Subscription:
+- id
+- workspaceId
+- provider
+- providerCustomerId
+- plan
+- status
+- renewalDate
+- createdAt
+- updatedAt
+
+UsageRecord:
+- id
+- workspaceId
+- metric
+- quantity
+- periodStart
+- periodEnd
+- createdAt
+
+======================================================================
+12. API REQUIREMENTS
+======================================================================
+
+Authentication:
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/logout
+- POST /api/auth/password-reset
+
+Projects:
+- GET /api/projects
+- POST /api/projects
+- GET /api/projects/:id
+- PATCH /api/projects/:id
+- DELETE /api/projects/:id
+- POST /api/projects/:id/duplicate
+- POST /api/projects/:id/versions
+
+Assets:
+- POST /api/assets/upload
+- GET /api/assets/:id
+- DELETE /api/assets/:id
+- POST /api/assets/:id/analyze
+
+Analysis:
+- POST /api/analysis/audio
+- GET /api/analysis/:id
+- POST /api/analysis/:id/retry
+
+Presets:
+- GET /api/presets
+- POST /api/presets
+- PATCH /api/presets/:id
+- DELETE /api/presets/:id
+- POST /api/presets/:id/apply
+
+Brand Kits:
+- GET /api/brand-kits
+- POST /api/brand-kits
+- PATCH /api/brand-kits/:id
+- DELETE /api/brand-kits/:id
+
+Rendering:
+- POST /api/render-jobs
+- GET /api/render-jobs
+- GET /api/render-jobs/:id
+- POST /api/render-jobs/:id/cancel
+- POST /api/render-jobs/:id/retry
+- GET /api/render-jobs/:id/download
+
+Usage and Billing:
+- GET /api/usage
+- GET /api/subscription
+- POST /api/billing/checkout
+- POST /api/billing/webhook
+
+======================================================================
+13. UI/UX REQUIREMENTS
+======================================================================
+
+13.1 Design Direction
+
+The interface should be:
+- Dark-first.
+- Premium.
+- Minimal but powerful.
+- Focused on the canvas.
+- Responsive.
+- High contrast.
+- Suitable for long editing sessions.
+
+Suggested layout:
+- Top navigation.
+- Large central preview.
+- Left asset and layer panel.
+- Right inspector panel.
+- Bottom timeline.
+- Floating playback controls.
+- Export action always accessible.
+
+13.2 Main Screens
+
+- Landing page.
+- Sign up / login.
+- Dashboard.
+- Project creation.
+- Editor.
+- Preset browser.
+- Brand kits.
+- Render queue.
+- Billing.
+- Account settings.
+- Help and documentation.
+
+13.3 Editor States
+
+- Empty project.
+- Uploading.
+- Analyzing.
+- Ready.
+- Playing.
+- Paused.
+- Rendering.
+- Export complete.
+- Export failed.
+- Unsupported device.
+- Missing asset.
+- Unsaved changes.
+
+13.4 Responsive Behavior
+
+Desktop is the primary editing experience.
+
+Tablet:
+- Collapsible side panels.
+- Touch-friendly timeline.
+- Reduced effect preview if necessary.
+
+Mobile:
+- View and basic editing may be supported.
+- Full professional editing is not required for MVP.
+- Export should be possible for simple projects if device performance allows.
+
+======================================================================
+14. SUBSCRIPTION MODEL
+======================================================================
+
+Suggested plans:
+
+Free:
+- Limited projects.
+- Limited storage.
+- 720p export.
+- Watermark.
+- Limited presets.
+- Short maximum duration.
+
+Creator:
+- More projects.
+- 1080p export.
+- No watermark.
+- More storage.
+- Full preset library.
+- Basic cloud rendering.
+
+Pro:
+- 4K export.
+- 60 FPS.
+- Advanced layers.
+- Brand kits.
+- Longer projects.
+- Priority rendering.
+- More storage.
+
+Team:
+- Shared workspaces.
+- Team members.
+- Permissions.
+- Shared brand kits.
+- Render queue.
+- Client review links.
+
+Enterprise:
+- Custom limits.
+- Dedicated infrastructure.
+- SSO.
+- Audit logs.
+- Priority support.
+- Custom branding.
+
+All plan limits must be enforced server-side.
+
+======================================================================
+15. MVP SCOPE
+======================================================================
+
+MVP must include:
+
+1. Account authentication.
+2. Project creation.
+3. Audio upload.
+4. Artwork/logo upload.
+5. Audio playback.
+6. Real-time FFT analysis.
+7. Bass, mid, treble, and volume extraction.
+8. Basic BPM estimation.
+9. Beat marker display.
+10. Circular spectrum.
+11. Logo pulse and glow.
+12. Particle field.
+13. Background controls.
+14. Color extraction.
+15. Basic preset system.
+16. Timeline seek and scrubbing.
+17. Landscape, portrait, and square canvas.
+18. Preview fullscreen.
+19. 1080p browser export for short tracks.
+20. Project autosave.
+21. Render progress.
+22. Downloadable output.
+
+MVP exclusions:
+- Team collaboration.
+- Marketplace.
+- AI prompt generation.
+- Advanced lyric timing.
+- Complex keyframe editor.
+- Enterprise billing.
+- Native mobile apps.
+
+======================================================================
+16. PHASED DELIVERY PLAN
+======================================================================
+
+Phase 1: Foundation
+- Monorepo.
+- Authentication.
+- Database.
+- Storage.
+- Project CRUD.
+- Basic UI shell.
+- Upload validation.
+
+Phase 2: Audio Engine
+- Audio playback.
+- Web Audio API.
+- FFT.
+- Frequency bands.
+- RMS and peak.
+- BPM estimate.
+- Beat markers.
+- Analysis caching.
+
+Phase 3: Visual Engine
+- WebGL canvas.
+- Artwork texture.
+- Logo renderer.
+- Circular spectrum.
+- Waveform.
+- Glow.
+- Particle field.
+- Audio mapping.
+
+Phase 4: Editor
+- Timeline.
+- Layer panel.
+- Inspector.
+- Presets.
+- Color extraction.
+- Aspect-ratio controls.
+- Fullscreen mode.
+- Undo/redo.
+
+Phase 5: Export
+- Browser export.
+- FFmpeg integration.
+- Audio muxing.
+- Render queue.
+- Progress reporting.
+- Retry handling.
+- Download links.
+
+Phase 6: SaaS
+- Subscription plans.
+- Usage limits.
+- Cloud rendering.
+- Brand kits.
+- Saved presets.
+- Project sharing.
+
+Phase 7: Advanced Features
+- AI-assisted presets.
+- Lyrics.
+- Keyframes.
+- Multi-layer animation.
+- Collaboration.
+- Marketplace.
+- Batch rendering.
+
+======================================================================
+17. ACCEPTANCE TESTING
+======================================================================
+
+Functional tests:
+- Upload valid MP3.
+- Upload valid WAV.
+- Reject unsupported file.
+- Upload transparent PNG.
+- Upload wide JPG.
+- Preserve image aspect ratio.
+- Play and pause audio.
+- Seek accurately.
+- Display waveform.
+- Display frequency response.
+- Detect beat markers.
+- Adjust BPM.
+- Apply preset.
+- Change logo scale.
+- Change glow.
+- Change spectrum radius.
+- Add and remove layers.
+- Save project.
+- Reload project.
+- Export video.
+- Verify audio/video duration match.
+- Download completed file.
+
+Performance tests:
+- 5-minute audio preview.
+- 30-minute audio preview.
+- 60 FPS target on capable desktop.
+- 10,000 particles.
+- Large 4K artwork.
+- Multiple layers.
+- Repeated project switching.
+- Long render job.
+- Browser tab backgrounding.
+
+Security tests:
+- Invalid MIME type.
+- Oversized upload.
+- Malformed SVG.
+- Unauthorized project access.
+- Expired signed URL.
+- Rate-limit enforcement.
+- Render job isolation.
+
+======================================================================
+18. OBSERVABILITY
+======================================================================
+
+Track:
+- Upload success rate.
+- Analysis duration.
+- Preview FPS.
+- WebGL errors.
+- Export success rate.
+- Export duration.
+- Render failure reasons.
+- Average project duration.
+- Most-used presets.
+- Most-used aspect ratios.
+- Storage usage.
+- Subscription conversion.
+- User retention.
+- Crash reports.
+
+Provide:
+- Structured logs.
+- Error tracking.
+- Render job metrics.
+- Performance telemetry with user consent.
+- Health checks.
+- Queue monitoring.
+- Storage monitoring.
+
+======================================================================
+19. RISKS AND MITIGATIONS
+======================================================================
+
+Risk: Browser performance varies widely.
+Mitigation: Adaptive quality, particle limits, preview resolution controls, and fallback rendering.
+
+Risk: Beat detection is inaccurate.
+Mitigation: Manual BPM, beat offset, marker editing, and multiple detection strategies.
+
+Risk: Long browser exports fail.
+Mitigation: Server-side rendering queue for larger jobs.
+
+Risk: SVG uploads contain unsafe content.
+Mitigation: Sanitize and rasterize SVG assets in a secure processing environment.
+
+Risk: WebGL unavailable.
+Mitigation: Detect support and provide a simplified fallback or compatibility message.
+
+Risk: Large files increase storage costs.
+Mitigation: Plan limits, lifecycle policies, compression, and asset deduplication.
+
+Risk: Users expect exact synchronization.
+Mitigation: Use deterministic timeline clocks, configurable latency compensation, and manual correction tools.
+
+Risk: Rendering output differs from preview.
+Mitigation: Shared scene configuration, deterministic random seeds, and renderer parity tests.
+
+======================================================================
+20. SUCCESS METRICS
+======================================================================
+
+Activation:
+- Percentage of new users who upload audio and artwork.
+- Percentage who preview a visualizer.
+- Percentage who export a video.
+
+Engagement:
+- Projects created per active user.
+- Average editing session duration.
+- Presets applied per project.
+- Number of saved projects.
+- Repeat exports.
+
+Quality:
+- Export success rate.
+- Preview crash rate.
+- Average FPS.
+- Audio/video synchronization error.
+- Support tickets per 1,000 exports.
+
+Business:
+- Free-to-paid conversion.
+- Monthly recurring revenue.
+- Churn.
+- Average revenue per user.
+- Cost per rendered minute.
+- Storage cost per active user.
+
+Suggested initial targets:
+- 80% successful first upload.
+- 70% of activated users generate a preview.
+- 40% of activated users complete an export.
+- 98% successful render completion for valid jobs.
+- Less than 100 ms perceived control latency during preview.
+- Less than 1 frame average synchronization drift in deterministic exports.
+
+======================================================================
+21. DEFINITION OF DONE
+======================================================================
+
+A feature is complete when:
+- Requirements are implemented.
+- UI states are implemented.
+- Validation is implemented.
+- Loading and error states exist.
+- Permissions are enforced.
+- Automated tests pass.
+- Accessibility checks pass.
+- Performance is acceptable.
+- Telemetry is added where relevant.
+- Documentation is updated.
+- The feature works on supported browsers.
+- The feature does not introduce memory leaks.
+- The feature is verified in a production-like environment.
+
+======================================================================
+22. FINAL PRODUCT REQUIREMENT
+======================================================================
+
+BeatVision must not be a generic audio equalizer with an image placed above it.
+
+It must be an artwork-first, audio-reactive visual composition system where:
+- The music controls motion.
+- The beat controls impact.
+- The artwork controls identity.
+- The logo remains recognizable.
+- The user controls the style.
+- The timeline controls precision.
+- The renderer controls quality.
+- The export system produces usable content for real publishing workflows.
+
+The product should allow a beginner to create a visualizer in under five minutes while giving advanced users enough control to produce distinctive, professional-grade music visuals.

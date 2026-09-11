@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String?
+  password        String
+  avatarUrl       String?
+  stripeCustomerId String?  @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  ownedWorkspaces Workspace[]
+  renderJobs      RenderJob[]
+  subscriptions   Subscription[]
+  payments        Payment[]
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     User          @relation(fields: [ownerId], references: [id])
+  projects  Project[]
+  assets    Asset[]
+  presets   Preset[]
+  brandKits BrandKit[]
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  name            String
+  description     String?
+  status          String   @default("draft")
+  duration        Float?
+  width           Int      @default(1920)
+  height          Int      @default(1080)
+  fps             Int      @default(30)
+  audioAssetId    String?
+  activeVersionId String?
+  thumbnailUrl    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace  Workspace       @relation(fields: [workspaceId], references: [id])
+  versions   ProjectVersion[]
+  renderJobs RenderJob[]     @relation("RenderJobProject")
+}
+
+model ProjectVersion {
+  id            String   @id @default(cuid())
+  projectId     String
+  versionNumber Int
+  sceneConfig   String
+  audioConfig   String?
+  beatMap       String?
+  exportConfig  String?
+  createdBy     String
+  createdAt     DateTime @default(now())
+
+  project    Project     @relation(fields: [projectId], references: [id])
+  renderJobs RenderJob[]
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  type         String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  storageKey   String
+  checksum     String
+  width        Int?
+  height       Int?
+  duration     Float?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Preset {
+  id          String   @id @default(cuid())
+  workspaceId String?
+  name        String
+  description String?
+  config      Json
+  isPublic    Boolean  @default(false)
+  downloads   Int      @default(0)
+  rating      Float?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id])
+}
+
+model BrandKit {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  name          String
+  logos         Json?
+  colors        Json?
+  typography    Json?
+  defaultLayout Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model RenderJob {
+  id               String    @id @default(cuid())
+  projectId        String
+  projectVersionId String
+  userId           String?
+  status           String    @default("queued")
+  progress         Float     @default(0)
+  outputFormat     String
+  width            Int
+  height           Int
+  fps              Int
+  storageKey       String?
+  outputUrl        String?
+  errorCode        String?
+  errorMessage     String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  project        Project        @relation("RenderJobProject", fields: [projectId], references: [id])
+  projectVersion ProjectVersion @relation(fields: [projectVersionId], references: [id])
+  user           User?          @relation(fields: [userId], references: [id])
+}
+
+// New models for subscriptions and payments
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String
+  stripeSubscriptionId String  @unique
+  stripePriceId      String
+  status             String    @default("active")
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Payment {
+  id                 String    @id @default(cuid())
+  userId             String
+  stripePaymentId    String    @unique
+  amount             Int
+  currency           String    @default("usd")
+  status             String
+  description        String?
+  metadata           Json?
+  createdAt          DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model UsageRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  amount    Int
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

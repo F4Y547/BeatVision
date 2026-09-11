@@ -1,0 +1,421 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { useEditorStore } from "@/stores/editor";
+import { VisualizerCanvas } from "@/components/editor/visualizer-canvas";
+import { ExportModal } from "@/components/editor/export-modal";
+import { PresetBrowser } from "@/components/editor/preset-browser";
+import { Timeline } from "@/components/editor/timeline";
+import { LayerPanel, type Layer } from "@/components/editor/layer-panel";
+import { MappingControls, type AudioMapping } from "@/components/editor/mapping-controls";
+import { extractColorsFromImage } from "@/lib/color-extraction";
+import type { VisualizerMode } from "@/types";
+
+const visualizerModes: { id: VisualizerMode; label: string }[] = [
+  { id: "circular-spectrum", label: "Circular Spectrum" },
+  { id: "logo-reactor", label: "Logo Reactor" },
+  { id: "linear-spectrum", label: "Linear Spectrum" },
+  { id: "waveform", label: "Waveform" },
+  { id: "particle-field", label: "Particle Field" },
+  { id: "cinematic-artwork", label: "Cinematic Artwork" },
+  { id: "minimal-pulse", label: "Minimal Pulse" },
+  { id: "radial-equalizer", label: "Radial Equalizer" },
+  { id: "glitch-impact", label: "Glitch Impact" },
+  { id: "ambient-gradient", label: "Ambient Gradient" },
+];
+
+export default function EditorPage() {
+  const {
+    scene,
+    setMode,
+    isPlaying,
+    setPlaying,
+    currentTime,
+    setCurrentTime,
+    audioAsset,
+    layers,
+    setLayers,
+    addLayer,
+    updateLayer,
+    removeLayer,
+    reorderLayers,
+    audioMappings,
+    addAudioMapping,
+    updateAudioMapping,
+    removeAudioMapping,
+    currentPreset,
+    applyPreset,
+  } = useEditorStore();
+
+  const [showExport, setShowExport] = useState(false);
+  const [showPresets, setShowPresets] = useState(false);
+  const [audioData, setAudioData] = useState<Float32Array | null>(null);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [rightPanel, setRightPanel] = useState<"inspector" | "mapping">("inspector");
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number>(0);
+
+  const startAudioAnalysis = useCallback(() => {
+    if (!audioRef.current || !audioContextRef.current || !analyserRef.current)
+      return;
+
+    const analyser = analyserRef.current;
+    const dataArray = new Float32Array(analyser.frequencyBinCount);
+
+    const updateAudioData = () => {
+      analyser.getFloatFrequencyData(dataArray);
+      setAudioData(new Float32Array(dataArray));
+      animationFrameRef.current = requestAnimationFrame(updateAudioData);
+    };
+
+    updateAudioData();
+  }, []);
+
+  const stopAudioAnalysis = useCallback(() => {
+    cancelAnimationFrame(animationFrameRef.current);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopAudioAnalysis();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, [stopAudioAnalysis]);
+
+  const handlePlayPause = async () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.src = audioAsset?.storageKey || "";
+
+      audioContextRef.current = new AudioContext();
+      const source = audioContextRef.current.createMediaElementSource(
+        audioRef.current
+      );
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 2048;
+
+      source.connect(analyserRef.current);
+      analyserRef.current.connect(audioContextRef.current.destination);
+
+      audioRef.current.addEventListener("timeupdate", () => {
+        setCurrentTime(audioRef.current?.currentTime || 0);
+      });
+
+      audioRef.current.addEventListener("ended", () => {
+        setPlaying(false);
+        stopAudioAnalysis();
+      });
+    }
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setPlaying(false);
+      stopAudioAnalysis();
+    } else {
+      await audioContextRef.current?.resume();
+      await audioRef.current.play();
+      setPlaying(true);
+      startAudioAnalysis();
+    }
+  };
+
+  const handleSeek = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleAddLayer = (type: Layer["type"]) => {
+    const newLayer: Layer = {
+      id: crypto.randomUUID(),
+      type,
+      name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${layers.length + 1}`,
+      visible: true,
+      locked: false,
+      opacity: 100,
+    };
+    addLayer(newLayer);
+  };
+
+  const handleAddMapping = () => {
+    const newMapping: AudioMapping = {
+      id: crypto.randomUUID(),
+      source: "bass",
+      target: "scale",
+      min: 0.8,
+      max: 1.5,
+      smoothing: 0.8,
+      curve: "linear",
+      enabled: true,
+    };
+    addAudioMapping(newMapping);
+  };
+
+  const handleExport = async (config: any) => {
+    setIsExporting(true);
+    setShowExport(false);
+    alert("Export started!");
+    setIsExporting(false);
+  };
+
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen">
+      {/* Top Bar */}
+      <header className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-surface-1">
+        <div className="flex items-center gap-4">
+          <h1 className="text-sm font-medium">Editor</h1>
+          <select
+            value={scene.mode}
+            onChange={(e) => setMode(e.target.value as VisualizerMode)}
+            className="bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
+          >
+            {visualizerModes.map((mode) => (
+              <option key={mode.id} value={mode.id}>
+                {mode.label}
+              </option>
+            ))}
+          </select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPresets(true)}
+          >
+            Presets
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm">
+            Undo
+          </Button>
+          <Button variant="ghost" size="sm">
+            Redo
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleFullscreen}>
+            Fullscreen
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowExport(true)}
+            disabled={isExporting}
+          >
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel - Layers */}
+        <aside className="w-64 border-r border-white/5 bg-surface-1 flex flex-col">
+          <LayerPanel
+            layers={layers}
+            selectedLayerId={selectedLayerId}
+            onSelectLayer={setSelectedLayerId}
+            onUpdateLayer={updateLayer}
+            onReorderLayers={reorderLayers}
+            onAddLayer={handleAddLayer}
+            onRemoveLayer={removeLayer}
+          />
+        </aside>
+
+        {/* Center - Canvas */}
+        <main className="flex-1 flex flex-col">
+          <div className="flex-1 flex items-center justify-center bg-surface-0 p-4">
+            <div className="relative w-full max-w-4xl aspect-video rounded-xl bg-surface-1 border border-white/5 overflow-hidden">
+              <VisualizerCanvas
+                width={1920}
+                height={1080}
+                mode={scene.mode}
+                audioData={audioData}
+                isPlaying={isPlaying}
+              />
+            </div>
+          </div>
+
+          {/* Playback Controls */}
+          <div className="flex items-center justify-center gap-4 py-3 border-t border-white/5 bg-surface-1">
+            <button
+              onClick={() => handleSeek(0)}
+              className="p-2 text-zinc-400 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+              </svg>
+            </button>
+            <button
+              onClick={handlePlayPause}
+              className="p-3 rounded-full bg-beatvision-600 hover:bg-beatvision-700 text-white transition-colors"
+            >
+              {isPlaying ? (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </button>
+            <span className="text-sm text-zinc-400 font-mono min-w-[80px]">
+              {formatTime(currentTime)} / 0:00
+            </span>
+          </div>
+
+          {/* Timeline */}
+          <div className="h-40 border-t border-white/5 bg-surface-1">
+            <Timeline
+              duration={180}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              audioData={audioData}
+              onSeek={handleSeek}
+            />
+          </div>
+        </main>
+
+        {/* Right Panel - Inspector / Mapping */}
+        <aside className="w-72 border-l border-white/5 bg-surface-1 flex flex-col">
+          {/* Panel Tabs */}
+          <div className="flex border-b border-white/5">
+            <button
+              onClick={() => setRightPanel("inspector")}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                rightPanel === "inspector"
+                  ? "text-beatvision-400 border-b-2 border-beatvision-500"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Inspector
+            </button>
+            <button
+              onClick={() => setRightPanel("mapping")}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                rightPanel === "mapping"
+                  ? "text-beatvision-400 border-b-2 border-beatvision-500"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Mapping
+            </button>
+          </div>
+
+          {/* Panel Content */}
+          <div className="flex-1 overflow-auto p-3">
+            {rightPanel === "inspector" ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Intensity
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="50"
+                    className="w-full accent-beatvision-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Glow
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="30"
+                    className="w-full accent-beatvision-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Opacity
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="100"
+                    className="w-full accent-beatvision-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Smoothing
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="80"
+                    className="w-full accent-beatvision-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300">
+                    Background Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      defaultValue="#0a0a0f"
+                      className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      defaultValue="#0a0a0f"
+                      className="flex-1 bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <MappingControls
+                mappings={audioMappings}
+                onUpdateMapping={updateAudioMapping}
+                onAddMapping={handleAddMapping}
+                onRemoveMapping={removeAudioMapping}
+              />
+            )}
+          </div>
+        </aside>
+      </div>
+
+      {/* Modals */}
+      <ExportModal
+        isOpen={showExport}
+        onClose={() => setShowExport(false)}
+        onExport={handleExport}
+      />
+      <PresetBrowser
+        isOpen={showPresets}
+        onClose={() => setShowPresets(false)}
+        onSelectPreset={applyPreset}
+        currentPresetId={currentPreset?.id}
+      />
+    </div>
+  );
+}
