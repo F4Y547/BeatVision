@@ -25,6 +25,87 @@ const visualizerModes: { id: VisualizerMode; label: string }[] = [
   { id: "ambient-gradient", label: "Ambient Gradient" },
 ];
 
+function InspectorControls() {
+  const { scene } = useEditorStore();
+  const [intensity, setIntensity] = useState(50);
+  const [glow, setGlow] = useState(30);
+  const [opacity, setOpacity] = useState(100);
+  const [smoothing, setSmoothing] = useState(80);
+  const [bgColor, setBgColor] = useState(scene.background.color || "#0a0a0f");
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-300">Intensity</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={intensity}
+          onChange={(e) => setIntensity(Number(e.target.value))}
+          aria-label="Intensity"
+          className="w-full accent-beatvision-500 focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-300">Glow</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={glow}
+          onChange={(e) => setGlow(Number(e.target.value))}
+          aria-label="Glow"
+          className="w-full accent-beatvision-500 focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-300">Opacity</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={opacity}
+          onChange={(e) => setOpacity(Number(e.target.value))}
+          aria-label="Opacity"
+          className="w-full accent-beatvision-500 focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-300">Smoothing</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={smoothing}
+          onChange={(e) => setSmoothing(Number(e.target.value))}
+          aria-label="Smoothing"
+          className="w-full accent-beatvision-500 focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-300">Background Color</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={bgColor}
+            onChange={(e) => setBgColor(e.target.value)}
+            aria-label="Background color picker"
+            className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer"
+          />
+          <input
+            type="text"
+            value={bgColor}
+            onChange={(e) => setBgColor(e.target.value)}
+            aria-label="Background color hex"
+            className="flex-1 bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-beatvision-500"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EditorPage() {
   const {
     scene,
@@ -35,7 +116,6 @@ export default function EditorPage() {
     setCurrentTime,
     audioAsset,
     layers,
-    setLayers,
     addLayer,
     updateLayer,
     removeLayer,
@@ -46,19 +126,22 @@ export default function EditorPage() {
     removeAudioMapping,
     currentPreset,
     applyPreset,
+    selectedLayerId,
+    setSelectedLayerId,
   } = useEditorStore();
 
   const [showExport, setShowExport] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [audioData, setAudioData] = useState<Float32Array | null>(null);
-  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [rightPanel, setRightPanel] = useState<"inspector" | "mapping">("inspector");
+  const [duration, setDuration] = useState(180);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number>(0);
+  const animationFrameRef = useRef<number>(-1);
 
   const startAudioAnalysis = useCallback(() => {
     if (!audioRef.current || !audioContextRef.current || !analyserRef.current)
@@ -94,6 +177,16 @@ export default function EditorPage() {
       audioRef.current = new Audio();
       audioRef.current.src = audioAsset?.storageKey || "";
 
+      audioRef.current.addEventListener("loadedmetadata", () => {
+        if (audioRef.current) {
+          setDuration(audioRef.current.duration || 180);
+        }
+      });
+
+      audioRef.current.addEventListener("error", () => {
+        setAudioError("Failed to load audio file.");
+      });
+
       audioContextRef.current = new AudioContext();
       const source = audioContextRef.current.createMediaElementSource(
         audioRef.current
@@ -119,6 +212,7 @@ export default function EditorPage() {
       setPlaying(false);
       stopAudioAnalysis();
     } else {
+      setAudioError(null);
       await audioContextRef.current?.resume();
       await audioRef.current.play();
       setPlaying(true);
@@ -172,11 +266,15 @@ export default function EditorPage() {
     setIsExporting(false);
   };
 
-  const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      document.exitFullscreen();
+  const handleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Fullscreen not supported or blocked
     }
   };
 
@@ -189,7 +287,8 @@ export default function EditorPage() {
           <select
             value={scene.mode}
             onChange={(e) => setMode(e.target.value as VisualizerMode)}
-            className="bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
+            aria-label="Visualizer mode"
+            className="bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-beatvision-500"
           >
             {visualizerModes.map((mode) => (
               <option key={mode.id} value={mode.id}>
@@ -254,11 +353,19 @@ export default function EditorPage() {
             </div>
           </div>
 
+          {/* Audio Error */}
+          {audioError && (
+            <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 text-red-400 text-sm text-center">
+              {audioError}
+            </div>
+          )}
+
           {/* Playback Controls */}
           <div className="flex items-center justify-center gap-4 py-3 border-t border-white/5 bg-surface-1">
             <button
               onClick={() => handleSeek(0)}
-              className="p-2 text-zinc-400 hover:text-white transition-colors"
+              aria-label="Rewind"
+              className="p-2 text-zinc-400 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none rounded"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
@@ -266,7 +373,8 @@ export default function EditorPage() {
             </button>
             <button
               onClick={handlePlayPause}
-              className="p-3 rounded-full bg-beatvision-600 hover:bg-beatvision-700 text-white transition-colors"
+              aria-label={isPlaying ? "Pause" : "Play"}
+              className="p-3 rounded-full bg-beatvision-600 hover:bg-beatvision-700 text-white transition-colors focus-visible:ring-2 focus-visible:ring-beatvision-400 focus-visible:outline-none"
             >
               {isPlaying ? (
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,14 +388,14 @@ export default function EditorPage() {
               )}
             </button>
             <span className="text-sm text-zinc-400 font-mono min-w-[80px]">
-              {formatTime(currentTime)} / 0:00
+              {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
           {/* Timeline */}
           <div className="h-40 border-t border-white/5 bg-surface-1">
             <Timeline
-              duration={180}
+              duration={duration}
               currentTime={currentTime}
               isPlaying={isPlaying}
               audioData={audioData}
@@ -325,73 +433,7 @@ export default function EditorPage() {
           {/* Panel Content */}
           <div className="flex-1 overflow-auto p-3">
             {rightPanel === "inspector" ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
-                    Intensity
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    defaultValue="50"
-                    className="w-full accent-beatvision-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
-                    Glow
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    defaultValue="30"
-                    className="w-full accent-beatvision-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
-                    Opacity
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    defaultValue="100"
-                    className="w-full accent-beatvision-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
-                    Smoothing
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    defaultValue="80"
-                    className="w-full accent-beatvision-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-300">
-                    Background Color
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      defaultValue="#0a0a0f"
-                      className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      defaultValue="#0a0a0f"
-                      className="flex-1 bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
+              <InspectorControls />
             ) : (
               <MappingControls
                 mappings={audioMappings}

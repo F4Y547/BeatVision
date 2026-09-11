@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import { SWRegistration } from "@/components/sw-registration";
+import { ToastProvider } from "@/components/ui/toast";
 
 export const metadata: Metadata = {
   title: "BeatVision - Advanced Music Visualizer",
@@ -63,7 +64,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="min-h-screen bg-surface-0 text-white antialiased safe-area-inset">
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
         <SWRegistration />
       </body>
     </html>

@@ -150,7 +150,7 @@ export function Timeline({
 
     for (let i = 0; i < barCount; i++) {
       const x = (i / barCount) * width;
-      const value = Math.sin(i * 0.1) * 0.3 + Math.random() * 0.2;
+      const value = Math.sin(i * 0.1) * 0.3 + Math.abs(Math.sin(i * 0.37)) * 0.2;
       const barHeight = value * height * 0.6;
 
       ctx.fillStyle = "rgba(92, 124, 250, 0.3)";

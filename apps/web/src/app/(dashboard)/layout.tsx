@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,9 +18,41 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen">
-      <aside className="w-64 border-r border-white/5 bg-surface-1 flex flex-col">
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+        className="fixed top-3 left-3 z-50 p-2 rounded-lg bg-surface-1 border border-white/10 text-zinc-400 hover:text-white lg:hidden focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {sidebarOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 border-r border-white/5 bg-surface-1 flex flex-col transition-transform duration-200",
+          "lg:relative lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <div className="p-4 border-b border-white/5">
           <Link href="/projects" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-beatvision-500 to-beatvision-700 flex items-center justify-center">
@@ -31,9 +66,10 @@ export default function DashboardLayout({
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setSidebarOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                "text-zinc-400 hover:text-white hover:bg-surface-3"
+                "text-zinc-400 hover:text-white hover:bg-surface-3 focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
               )}
             >
               {item.icon === "folder" && (
@@ -78,12 +114,12 @@ export default function DashboardLayout({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">User</p>
-              <p className="text-xs text-zinc-500 truncate">Free plan</p>
+              <p className="text-xs text-zinc-400 truncate">Free plan</p>
             </div>
           </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main id="main-content" className="flex-1 overflow-auto">{children}</main>
     </div>
   );
 }

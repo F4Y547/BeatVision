@@ -14,10 +14,22 @@ export default function NewProjectPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const artworkPreview = artworkFile ? URL.createObjectURL(artworkFile) : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!audioFile) return;
+    setError(null);
+
+    if (!name.trim()) {
+      setError("Project name is required.");
+      return;
+    }
+    if (!audioFile) {
+      setError("Please upload an audio file.");
+      return;
+    }
 
     setLoading(true);
 
@@ -136,7 +148,7 @@ export default function NewProjectPage() {
               <div className="mt-4 p-3 rounded-lg bg-surface-2 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg bg-surface-3 overflow-hidden">
                   <img
-                    src={URL.createObjectURL(artworkFile)}
+                    src={artworkPreview || ""}
                     alt="Artwork preview"
                     className="w-full h-full object-cover"
                   />
@@ -172,6 +184,12 @@ export default function NewProjectPage() {
             )}
           </CardContent>
         </Card>
+
+        {error && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           <Button

@@ -10,9 +10,12 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("demo@beatvision.app");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [exportQuality, setExportQuality] = useState("high");
   const [autoSave, setAutoSave] = useState(true);
   const [theme, setTheme] = useState("dark");
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -39,8 +42,11 @@ export default function SettingsPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+          {saveMessage && (
+            <p className="text-sm text-green-400">{saveMessage}</p>
+          )}
           <div className="flex justify-end">
-            <Button>Save Changes</Button>
+            <Button onClick={() => setSaveMessage("Profile updated successfully!")}>Save Changes</Button>
           </div>
         </CardContent>
       </Card>
@@ -68,9 +74,38 @@ export default function SettingsPage() {
             label="Confirm New Password"
             type="password"
             placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
+          {passwordMessage && (
+            <p className={`text-sm ${passwordMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+              {passwordMessage}
+            </p>
+          )}
           <div className="flex justify-end">
-            <Button>Update Password</Button>
+            <Button
+              onClick={() => {
+                setPasswordMessage(null);
+                if (!currentPassword || !newPassword) {
+                  setPasswordMessage("Please fill in all password fields.");
+                  return;
+                }
+                if (newPassword !== confirmPassword) {
+                  setPasswordMessage("Passwords do not match.");
+                  return;
+                }
+                if (newPassword.length < 8) {
+                  setPasswordMessage("Password must be at least 8 characters.");
+                  return;
+                }
+                setPasswordMessage("Password updated successfully!");
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
+            >
+              Update Password
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -22,8 +22,10 @@ export function VisualizerCanvas({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const frameRef = useRef<number>(0);
+  const frameRef = useRef<number>(-1);
   const visualizerRef = useRef<THREE.Object3D | null>(null);
+  const audioDataRef = useRef<Float32Array | null>(null);
+  const modeRef = useRef<string>(mode);
 
   const createVisualizer = useCallback(
     (scene: THREE.Scene, visualMode: string) => {
@@ -72,15 +74,14 @@ export function VisualizerCanvas({
     []
   );
 
+  audioDataRef.current = audioData ?? null;
+  modeRef.current = mode;
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    // Initialize Three.js
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: false,
-    });
+    const canvas = canvasRef.current;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x0a0a0f, 1);
@@ -93,17 +94,15 @@ export function VisualizerCanvas({
     sceneRef.current = scene;
     cameraRef.current = camera;
 
-    // Create initial visualizer
-    createVisualizer(scene, mode);
+    createVisualizer(scene, modeRef.current);
 
-    // Animation loop
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate);
-
-      if (visualizerRef.current && audioData) {
-        updateVisualizer(visualizerRef.current, audioData, mode);
+      const data = audioDataRef.current;
+      const currentMode = modeRef.current;
+      if (visualizerRef.current && data) {
+        updateVisualizer(visualizerRef.current, data, currentMode);
       }
-
       renderer.render(scene, camera);
     };
 
@@ -113,7 +112,7 @@ export function VisualizerCanvas({
       cancelAnimationFrame(frameRef.current);
       renderer.dispose();
     };
-  }, [width, height, mode, audioData, createVisualizer]);
+  }, [width, height, createVisualizer]);
 
   return (
     <canvas
