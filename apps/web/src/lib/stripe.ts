@@ -1,13 +1,29 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not set");
+// Lazy initialization - only creates Stripe instance when first accessed
+let _stripe: Stripe | undefined;
+
+function getStripeClient(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error(
+        "STRIPE_SECRET_KEY is not set. Add it to your environment variables."
+      );
+    }
+    _stripe = new Stripe(key, {
+      apiVersion: "2025-02-24.acacia",
+      typescript: true,
+    });
+  }
+  return _stripe;
 }
 
-// Initialize Stripe
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-02-24.acacia",
-  typescript: true,
+// Lazy proxy - Stripe client is only initialized when actually used at runtime
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    return (getStripeClient() as any)[prop];
+  },
 });
 
 // Price IDs for each plan
