@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -19,23 +20,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const isEditor = pathname.includes("/editor");
 
   return (
     <div className="flex h-screen">
-      {/* Mobile hamburger */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        aria-label="Toggle menu"
-        className="fixed top-3 left-3 z-50 p-2 rounded-lg bg-surface-1 border border-white/10 text-zinc-400 hover:text-white lg:hidden focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {sidebarOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
+      {/* Mobile hamburger — hidden on editor page (has its own panel toggles) */}
+      {!isEditor && (
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label="Toggle menu"
+          className="fixed top-3 left-3 z-50 p-2 rounded-lg bg-surface-1 border border-white/10 text-zinc-400 hover:text-white lg:hidden focus-visible:ring-2 focus-visible:ring-beatvision-500 focus-visible:outline-none"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {sidebarOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {sidebarOpen && (
