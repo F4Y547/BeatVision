@@ -17,7 +17,10 @@ export async function GET(
 
     const project = await db.project.findUnique({
       where: { id },
-      include: { workspace: true },
+      include: { 
+        workspace: true,
+        audioAsset: true,
+      },
     });
 
     if (!project) {

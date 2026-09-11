@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/stores/editor";
 import { VisualizerCanvas } from "@/components/editor/visualizer-canvas";
@@ -107,6 +109,9 @@ function InspectorControls() {
 }
 
 export default function EditorPage() {
+  const params = useParams();
+  const projectId = params.id as string;
+
   const {
     scene,
     setMode,
@@ -139,6 +144,8 @@ export default function EditorPage() {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
+  const [projectName, setProjectName] = useState("Loading...");
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -174,10 +181,36 @@ export default function EditorPage() {
     };
   }, [stopAudioAnalysis]);
 
+  // Load project data from API
+  useEffect(() => {
+    if (!projectId) return;
+
+    fetch(`/api/projects/${projectId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.project) {
+          setProjectName(data.project.name);
+          if (data.project.duration) {
+            setDuration(data.project.duration);
+          }
+          // Load audio URL from asset metadata
+          if (data.project.audioAsset?.metadata) {
+            try {
+              const meta = JSON.parse(data.project.audioAsset.metadata);
+              if (meta.url) setAudioUrl(meta.url);
+            } catch {}
+          }
+        }
+      })
+      .catch(() => {
+        setProjectName("Untitled Project");
+      });
+  }, [projectId]);
+
   const handlePlayPause = async () => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.src = audioAsset?.storageKey || "";
+      audioRef.current.src = audioUrl || audioAsset?.storageKey || "";
 
       audioRef.current.addEventListener("loadedmetadata", () => {
         if (audioRef.current) {
@@ -285,6 +318,14 @@ export default function EditorPage() {
       {/* Top Bar */}
       <header className="flex items-center justify-between px-2 md:px-4 py-2 border-b border-white/5 bg-surface-1 gap-2">
         <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <Link
+            href={`/projects/${projectId}`}
+            className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-surface-2 transition-colors shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
           <Button variant="ghost" size="sm" className="lg:hidden shrink-0" onClick={() => setLeftPanelOpen(true)}>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -302,6 +343,7 @@ export default function EditorPage() {
               </option>
             ))}
           </select>
+          <span className="hidden md:inline text-sm text-zinc-400 truncate max-w-[200px]">{projectName}</span>
           <Button
             variant="ghost"
             size="sm"

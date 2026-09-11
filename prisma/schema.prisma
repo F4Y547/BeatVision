@@ -54,6 +54,7 @@ model Project {
   updatedAt       DateTime @updatedAt
 
   workspace  Workspace       @relation(fields: [workspaceId], references: [id])
+  audioAsset Asset?          @relation("AudioAsset", fields: [audioAssetId], references: [id])
   versions   ProjectVersion[]
   renderJobs RenderJob[]     @relation("RenderJobProject")
 }
@@ -88,7 +89,8 @@ model Asset {
   metadata     Json?
   createdAt    DateTime @default(now())
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id])
+  audioProjects Project[]   @relation("AudioAsset")
 }
 
 model Preset {

@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { FileUpload } from "@/components/upload/file-upload";
-import { formatFileSize, formatDuration } from "@/lib/utils";
+import { formatFileSize } from "@/lib/utils";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function NewProjectPage() {
   const [artworkFile, setArtworkFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   const artworkPreview = artworkFile ? URL.createObjectURL(artworkFile) : null;
 
@@ -34,10 +35,61 @@ export default function NewProjectPage() {
     setLoading(true);
 
     try {
-      // TODO: Upload files and create project
-      const projectId = "new-project-id";
-      router.push(`/projects/${projectId}/editor`);
-    } catch {
+      // 1. Create project
+      setUploadProgress("Creating project...");
+      const projectRes = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+
+      if (!projectRes.ok) {
+        const data = await projectRes.json();
+        throw new Error(data.error || "Failed to create project");
+      }
+
+      const { project } = await projectRes.json();
+
+      // 2. Upload audio file
+      setUploadProgress("Uploading audio...");
+      const audioFormData = new FormData();
+      audioFormData.append("file", audioFile);
+      audioFormData.append("type", "audio");
+      audioFormData.append("projectId", project.id);
+
+      const audioRes = await fetch("/api/assets", {
+        method: "POST",
+        body: audioFormData,
+      });
+
+      if (!audioRes.ok) {
+        const data = await audioRes.json();
+        throw new Error(data.error || "Failed to upload audio");
+      }
+
+      // 3. Upload artwork if provided
+      if (artworkFile) {
+        setUploadProgress("Uploading artwork...");
+        const imageFormData = new FormData();
+        imageFormData.append("file", artworkFile);
+        imageFormData.append("type", "image");
+        imageFormData.append("projectId", project.id);
+
+        const imageRes = await fetch("/api/assets", {
+          method: "POST",
+          body: imageFormData,
+        });
+
+        if (!imageRes.ok) {
+          console.warn("Artwork upload failed, continuing without it");
+        }
+      }
+
+      // 4. Navigate to editor
+      setUploadProgress("Opening editor...");
+      router.push(`/projects/${project.id}/editor`);
+    } catch (err: any) {
+      setError(err.message || "An error occurred. Please try again.");
       setLoading(false);
     }
   }
@@ -86,7 +138,7 @@ export default function NewProjectPage() {
             {audioFile && (
               <div className="mt-4 p-3 rounded-lg bg-surface-2 flex items-center gap-3">
                 <svg
-                  className="w-8 h-8 text-beatvision-400"
+                  className="w-8 h-8 text-beatvision-400 shrink-0"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -109,20 +161,10 @@ export default function NewProjectPage() {
                 <button
                   type="button"
                   onClick={() => setAudioFile(null)}
-                  className="text-zinc-500 hover:text-white"
+                  className="text-zinc-500 hover:text-white shrink-0"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
@@ -134,7 +176,7 @@ export default function NewProjectPage() {
           <CardHeader>
             <CardTitle>Artwork</CardTitle>
             <CardDescription>
-              Upload your logo or album artwork (PNG, JPG, SVG)
+              Upload your logo or album artwork (PNG, JPG, SVG) — optional
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -146,7 +188,7 @@ export default function NewProjectPage() {
             />
             {artworkFile && (
               <div className="mt-4 p-3 rounded-lg bg-surface-2 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-surface-3 overflow-hidden">
+                <div className="w-12 h-12 rounded-lg bg-surface-3 overflow-hidden shrink-0">
                   <img
                     src={artworkPreview || ""}
                     alt="Artwork preview"
@@ -164,20 +206,10 @@ export default function NewProjectPage() {
                 <button
                   type="button"
                   onClick={() => setArtworkFile(null)}
-                  className="text-zinc-500 hover:text-white"
+                  className="text-zinc-500 hover:text-white shrink-0"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
@@ -191,11 +223,22 @@ export default function NewProjectPage() {
           </div>
         )}
 
+        {loading && uploadProgress && (
+          <div className="p-3 rounded-lg bg-beatvision-500/10 border border-beatvision-500/20 text-beatvision-400 text-sm flex items-center gap-2">
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            {uploadProgress}
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Button
             type="button"
             variant="secondary"
             onClick={() => router.back()}
+            disabled={loading}
           >
             Cancel
           </Button>
