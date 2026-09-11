@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 
@@ -17,7 +18,6 @@ const plans = [
       "5 presets",
       "10 min max duration",
     ],
-    current: true,
   },
   {
     id: "creator",
@@ -32,7 +32,6 @@ const plans = [
       "30 min max duration",
       "5GB storage",
     ],
-    current: false,
     popular: true,
   },
   {
@@ -50,25 +49,89 @@ const plans = [
       "50GB storage",
       "Priority rendering",
     ],
-    current: false,
   },
 ];
 
 export default function BillingPage() {
+  const searchParams = useSearchParams();
   const [currentPlan, setCurrentPlan] = useState("free");
+  const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<any>(null);
+
+  const upgraded = searchParams.get("upgraded");
+
+  useEffect(() => {
+    fetch("/api/billing")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.plan) setCurrentPlan(data.plan);
+        if (data.subscription) setSubscription(data.subscription);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [upgraded]);
 
   const usage = {
-    projects: { used: 2, limit: 3 },
-    storage: { used: 1.2, limit: 5, unit: "GB" },
-    exports: { used: 5, limit: 10, period: "month" },
+    projects: { used: 2, limit: currentPlan === "free" ? 3 : currentPlan === "creator" ? 25 : 999 },
+    storage: { used: 1.2, limit: currentPlan === "free" ? 0.5 : currentPlan === "creator" ? 5 : 50, unit: "GB" },
+    exports: { used: 5, limit: currentPlan === "free" ? 10 : currentPlan === "creator" ? 50 : 999, period: "month" },
+  };
+
+  const handleUpgrade = async (planId: string) => {
+    setCheckoutLoading(planId);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planId, interval: "monthly" }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start checkout");
+        setCheckoutLoading(null);
+      }
+    } catch {
+      alert("Failed to start checkout");
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      const res = await fetch("/api/billing", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to open billing portal");
+      }
+    } catch {
+      alert("Failed to open billing portal");
+    }
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Billing</h1>
-        <p className="text-zinc-400 mt-1">Manage your subscription and usage</p>
+    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Billing</h1>
+          <p className="text-zinc-400 mt-1">Manage your subscription and usage</p>
+        </div>
+        {currentPlan !== "free" && (
+          <Button variant="secondary" onClick={handleManageBilling}>
+            Manage Subscription
+          </Button>
+        )}
       </div>
+
+      {upgraded && (
+        <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
+          Your subscription has been upgraded successfully!
+        </div>
+      )}
 
       {/* Current Usage */}
       <Card>
@@ -82,14 +145,14 @@ export default function BillingPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-zinc-400">Projects</span>
                 <span className="text-white">
-                  {usage.projects.used} / {usage.projects.limit}
+                  {usage.projects.used} / {usage.projects.limit === 999 ? "∞" : usage.projects.limit}
                 </span>
               </div>
               <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-beatvision-500 rounded-full"
                   style={{
-                    width: `${(usage.projects.used / usage.projects.limit) * 100}%`,
+                    width: `${Math.min((usage.projects.used / usage.projects.limit) * 100, 100)}%`,
                   }}
                 />
               </div>
@@ -106,7 +169,7 @@ export default function BillingPage() {
                 <div
                   className="h-full bg-beatvision-500 rounded-full"
                   style={{
-                    width: `${(usage.storage.used / usage.storage.limit) * 100}%`,
+                    width: `${Math.min((usage.storage.used / usage.storage.limit) * 100, 100)}%`,
                   }}
                 />
               </div>
@@ -116,14 +179,14 @@ export default function BillingPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-zinc-400">Exports</span>
                 <span className="text-white">
-                  {usage.exports.used} / {usage.exports.limit} this {usage.exports.period}
+                  {usage.exports.used} / {usage.exports.limit === 999 ? "∞" : usage.exports.limit} this {usage.exports.period}
                 </span>
               </div>
               <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-beatvision-500 rounded-full"
                   style={{
-                    width: `${(usage.exports.used / usage.exports.limit) * 100}%`,
+                    width: `${Math.min((usage.exports.used / usage.exports.limit) * 100, 100)}%`,
                   }}
                 />
               </div>
@@ -136,62 +199,109 @@ export default function BillingPage() {
       <div>
         <h2 className="text-lg font-semibold mb-4">Subscription Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={`relative ${
-                plan.current
-                  ? "border-beatvision-500 bg-beatvision-500/5"
-                  : plan.popular
-                  ? "border-beatvision-500/50"
-                  : ""
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-beatvision-600 text-white text-xs font-medium rounded-full">
-                  Most Popular
-                </div>
-              )}
-              <CardHeader>
-                <CardTitle>{plan.name}</CardTitle>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-zinc-500">{plan.period}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <svg
-                        className="w-4 h-4 text-beatvision-500 shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-zinc-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant={plan.current ? "secondary" : "primary"}
-                  className="w-full"
-                  disabled={plan.current}
-                >
-                  {plan.current ? "Current Plan" : "Upgrade"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {plans.map((plan) => {
+            const isCurrent = plan.id === currentPlan;
+            return (
+              <Card
+                key={plan.id}
+                className={`relative ${
+                  isCurrent
+                    ? "border-beatvision-500 bg-beatvision-500/5"
+                    : plan.popular
+                    ? "border-beatvision-500/50"
+                    : ""
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-beatvision-600 text-white text-xs font-medium rounded-full">
+                    Most Popular
+                  </div>
+                )}
+                <CardHeader>
+                  <CardTitle>{plan.name}</CardTitle>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold">{plan.price}</span>
+                    <span className="text-zinc-500">{plan.period}</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm">
+                        <svg
+                          className="w-4 h-4 text-beatvision-500 shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <span className="text-zinc-300">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {isCurrent ? (
+                    <Button variant="secondary" className="w-full" disabled>
+                      Current Plan
+                    </Button>
+                  ) : plan.id === "free" ? (
+                    <Button variant="secondary" className="w-full" disabled>
+                      Downgrade
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full"
+                      onClick={() => handleUpgrade(plan.id)}
+                      disabled={checkoutLoading !== null}
+                    >
+                      {checkoutLoading === plan.id ? "Redirecting..." : "Upgrade"}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
+
+      {/* Subscription Details */}
+      {subscription && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-zinc-400">Status</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs capitalize ${
+                subscription.status === "active"
+                  ? "bg-green-500/10 text-green-400"
+                  : "bg-zinc-500/10 text-zinc-400"
+              }`}>
+                {subscription.status}
+              </span>
+            </div>
+            {subscription.currentPeriodEnd && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400">Next billing date</span>
+                <span className="text-white">
+                  {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                </span>
+              </div>
+            )}
+            {subscription.cancelAtPeriodEnd && (
+              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm">
+                Your subscription will cancel at the end of the current period.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Payment History */}
       <Card>
@@ -205,7 +315,9 @@ export default function BillingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             <p>No payment history</p>
-            <p className="text-sm mt-1">You're on the free plan</p>
+            <p className="text-sm mt-1">
+              {currentPlan === "free" ? "You're on the free plan" : "Payments will appear here"}
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -43,8 +43,8 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="mb-8">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto">
+      <div className="mb-6 md:mb-8">
         <h1 className="text-2xl font-bold">New Project</h1>
         <p className="text-zinc-400 mt-1">
           Upload your music and artwork to get started
@@ -191,7 +191,7 @@ export default function NewProjectPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Button
             type="button"
             variant="secondary"
