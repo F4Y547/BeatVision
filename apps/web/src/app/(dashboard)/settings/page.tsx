@@ -18,7 +18,7 @@ export default function SettingsPage() {
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-zinc-400 mt-1">Manage your account and preferences</p>
@@ -215,14 +215,14 @@ export default function SettingsPage() {
           <CardDescription>Irreversible actions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg bg-red-500/5 border border-red-500/10 gap-3">
             <div>
               <p className="text-sm font-medium">Delete Account</p>
               <p className="text-xs text-zinc-500">
                 Permanently delete your account and all associated data
               </p>
             </div>
-            <Button variant="destructive" size="sm">
+            <Button variant="destructive" size="sm" className="shrink-0">
               Delete Account
             </Button>
           </div>

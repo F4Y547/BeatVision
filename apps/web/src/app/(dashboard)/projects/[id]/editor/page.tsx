@@ -137,6 +137,8 @@ export default function EditorPage() {
   const [rightPanel, setRightPanel] = useState<"inspector" | "mapping">("inspector");
   const [duration, setDuration] = useState(180);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -281,14 +283,18 @@ export default function EditorPage() {
   return (
     <div className="flex flex-col h-screen">
       {/* Top Bar */}
-      <header className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-surface-1">
-        <div className="flex items-center gap-4">
-          <h1 className="text-sm font-medium">Editor</h1>
+      <header className="flex items-center justify-between px-2 md:px-4 py-2 border-b border-white/5 bg-surface-1 gap-2">
+        <div className="flex items-center gap-2 md:gap-4 min-w-0">
+          <Button variant="ghost" size="sm" className="lg:hidden shrink-0" onClick={() => setLeftPanelOpen(true)}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Button>
           <select
             value={scene.mode}
             onChange={(e) => setMode(e.target.value as VisualizerMode)}
             aria-label="Visualizer mode"
-            className="bg-surface-2 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-beatvision-500"
+            className="bg-surface-2 border border-white/10 rounded-lg px-2 md:px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-beatvision-500 shrink-0"
           >
             {visualizerModes.map((mode) => (
               <option key={mode.id} value={mode.id}>
@@ -300,18 +306,19 @@ export default function EditorPage() {
             variant="ghost"
             size="sm"
             onClick={() => setShowPresets(true)}
+            className="hidden sm:inline-flex shrink-0"
           >
             Presets
           </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex">
             Undo
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex">
             Redo
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleFullscreen}>
+          <Button variant="ghost" size="sm" onClick={handleFullscreen} className="hidden lg:inline-flex">
             Fullscreen
           </Button>
           <Button
@@ -322,12 +329,43 @@ export default function EditorPage() {
           >
             {isExporting ? "Exporting..." : "Export"}
           </Button>
+          <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setRightPanelOpen(true)}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </Button>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Layers */}
-        <aside className="w-64 border-r border-white/5 bg-surface-1 flex flex-col">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Left Panel Overlay */}
+        {leftPanelOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setLeftPanelOpen(false)}>
+            <div className="absolute inset-0 bg-black/50" />
+            <aside className="absolute left-0 top-0 bottom-0 w-64 bg-surface-1 border-r border-white/5 flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/5">
+                <span className="text-sm font-medium">Layers</span>
+                <button onClick={() => setLeftPanelOpen(false)} className="p-1 text-zinc-400 hover:text-white">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <LayerPanel
+                layers={layers}
+                selectedLayerId={selectedLayerId}
+                onSelectLayer={setSelectedLayerId}
+                onUpdateLayer={updateLayer}
+                onReorderLayers={reorderLayers}
+                onAddLayer={handleAddLayer}
+                onRemoveLayer={removeLayer}
+              />
+            </aside>
+          </div>
+        )}
+
+        {/* Desktop Left Panel */}
+        <aside className="hidden lg:flex w-64 border-r border-white/5 bg-surface-1 flex-col">
           <LayerPanel
             layers={layers}
             selectedLayerId={selectedLayerId}
@@ -341,7 +379,7 @@ export default function EditorPage() {
 
         {/* Center - Canvas */}
         <main className="flex-1 flex flex-col">
-          <div className="flex-1 flex items-center justify-center bg-surface-0 p-4">
+          <div className="flex-1 flex items-center justify-center bg-surface-0 p-2 md:p-4">
             <div className="relative w-full max-w-4xl aspect-video rounded-xl bg-surface-1 border border-white/5 overflow-hidden">
               <VisualizerCanvas
                 width={1920}
@@ -361,7 +399,7 @@ export default function EditorPage() {
           )}
 
           {/* Playback Controls */}
-          <div className="flex items-center justify-center gap-4 py-3 border-t border-white/5 bg-surface-1">
+          <div className="flex items-center justify-center gap-2 md:gap-4 py-2 md:py-3 border-t border-white/5 bg-surface-1">
             <button
               onClick={() => handleSeek(0)}
               aria-label="Rewind"
@@ -387,13 +425,13 @@ export default function EditorPage() {
                 </svg>
               )}
             </button>
-            <span className="text-sm text-zinc-400 font-mono min-w-[80px]">
+            <span className="text-xs md:text-sm text-zinc-400 font-mono min-w-[60px] md:min-w-[80px]">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
           {/* Timeline */}
-          <div className="h-40 border-t border-white/5 bg-surface-1">
+          <div className="h-24 md:h-40 border-t border-white/5 bg-surface-1">
             <Timeline
               duration={duration}
               currentTime={currentTime}
@@ -404,8 +442,40 @@ export default function EditorPage() {
           </div>
         </main>
 
-        {/* Right Panel - Inspector / Mapping */}
-        <aside className="w-72 border-l border-white/5 bg-surface-1 flex flex-col">
+        {/* Mobile Right Panel Overlay */}
+        {rightPanelOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setRightPanelOpen(false)}>
+            <div className="absolute inset-0 bg-black/50" />
+            <aside className="absolute right-0 top-0 bottom-0 w-72 bg-surface-1 border-l border-white/5 flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/5">
+                <div className="flex gap-1">
+                  <button onClick={() => setRightPanel("inspector")} className={`text-sm px-2 py-1 rounded ${rightPanel === "inspector" ? "text-beatvision-400" : "text-zinc-400"}`}>Inspector</button>
+                  <button onClick={() => setRightPanel("mapping")} className={`text-sm px-2 py-1 rounded ${rightPanel === "mapping" ? "text-beatvision-400" : "text-zinc-400"}`}>Mapping</button>
+                </div>
+                <button onClick={() => setRightPanelOpen(false)} className="p-1 text-zinc-400 hover:text-white">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto p-3">
+                {rightPanel === "inspector" ? (
+                  <InspectorControls />
+                ) : (
+                  <MappingControls
+                    mappings={audioMappings}
+                    onUpdateMapping={updateAudioMapping}
+                    onAddMapping={handleAddMapping}
+                    onRemoveMapping={removeAudioMapping}
+                  />
+                )}
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* Desktop Right Panel */}
+        <aside className="hidden lg:flex w-72 border-l border-white/5 bg-surface-1 flex flex-col">
           {/* Panel Tabs */}
           <div className="flex border-b border-white/5">
             <button

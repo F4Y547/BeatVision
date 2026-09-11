@@ -3,34 +3,34 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+      <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/5">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-beatvision-500 to-beatvision-700 flex items-center justify-center">
             <span className="text-white font-bold text-sm">BV</span>
           </div>
-          <span className="text-xl font-bold">BeatVision</span>
+          <span className="text-lg md:text-xl font-bold">BeatVision</span>
         </div>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 md:gap-4">
           <Link
             href="/login"
-            className="text-zinc-400 hover:text-white transition-colors"
+            className="text-zinc-400 hover:text-white transition-colors text-sm md:text-base"
           >
             Sign in
           </Link>
-          <Link href="/register" className="btn-primary">
+          <Link href="/register" className="btn-primary text-sm md:text-base px-3 md:px-4 py-2">
             Get Started
           </Link>
         </nav>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-12 md:py-20">
         <div className="max-w-3xl text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-beatvision-500/10 border border-beatvision-500/20 text-beatvision-400 text-sm">
             <span className="w-2 h-2 rounded-full bg-beatvision-400 animate-pulse" />
             Now in beta
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight">
             Your music.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-beatvision-400 to-beatvision-600">
               Your artwork.
@@ -90,7 +90,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="px-6 py-6 border-t border-white/5 text-center text-zinc-500 text-sm">
+      <footer className="px-4 md:px-6 py-6 border-t border-white/5 text-center text-zinc-500 text-sm">
         BeatVision — Advanced Real-Time Music Visualizer
       </footer>
     </div>

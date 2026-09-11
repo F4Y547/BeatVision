@@ -111,7 +111,7 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
   })).filter((category) => category.items.length > 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/5">

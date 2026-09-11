@@ -95,7 +95,7 @@ export default function HelpPage() {
   });
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Help Center</h1>
@@ -169,7 +169,7 @@ export default function HelpPage() {
       </div>
 
       {/* Categories */}
-      <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
+      <div className="flex gap-2 overflow-x-auto pb-2 md:justify-center">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -200,11 +200,11 @@ export default function HelpPage() {
               }
               className="w-full p-4 text-left flex items-center justify-between"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-zinc-500 bg-surface-2 px-2 py-1 rounded">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-xs text-zinc-500 bg-surface-2 px-2 py-1 rounded shrink-0">
                   {item.category}
                 </span>
-                <span className="font-medium">{item.question}</span>
+                <span className="font-medium text-sm md:text-base truncate">{item.question}</span>
               </div>
               <svg
                 className={`w-5 h-5 text-zinc-400 transition-transform ${
@@ -240,7 +240,7 @@ export default function HelpPage() {
           <p className="text-zinc-400 mb-6">
             Our support team is here to help you with any questions or issues
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="px-6 py-3 bg-beatvision-600 hover:bg-beatvision-700 text-white font-medium rounded-xl transition-colors">
               Contact Support
             </button>
